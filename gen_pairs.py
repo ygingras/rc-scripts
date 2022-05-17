@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 
+""" Generate pairings for the pair programming workshop. 
+
+Usage: ./gen_pairs.py signup-sheet.ods """
+
 # The format of the pairing signup sheet should closely mirror this one:
-# https://docs.google.com/spreadsheets/d/1S0kXTRi5HHM69-Z-t3dECLeC99AcPIJpzjIFpeC0vUI/edit#gid=0
+# https://docs.google.com/spreadsheets/d/16NYawiFe054Zzy7XFxlW1sBWVmgp9DwEUEd5CLjW_zE/edit?usp=sharing
+# the script understands .ods and .csv formats.
 
 import sys
 import itertools
@@ -11,7 +16,7 @@ from pprint import pprint
 import pandas
 
 FILE = "pairing-demo-data.ods"
-
+SKIP_NAMES = ["Joe Coder"]
 
 def gen_pairing_scores(df, langs):
     """ Score each possible pairing. 
@@ -37,6 +42,7 @@ def gen_pairing_scores(df, langs):
         scores[key] = score
     return scores
 
+
 def gen_pairing(names, scores):
     """ Generate a random pairing biased towards a high total pairing value. """
     names = set(names)
@@ -56,8 +62,6 @@ def gen_pairing(names, scores):
 
 
 def main():
-    # TODO: 
-    # - read list of skip names
     # MAYBE: --help
     if sys.version_info[:2] < (3, 10):
         raise RuntimeError("This script uses pattern matching, which is only available"
@@ -69,13 +73,13 @@ def main():
     df = df.iloc[5:, 1:-1]
     df.columns = ["Recurser"] + langs
     df.dropna(how="all", inplace=True)
-    names = list(df["Recurser"])
+    
+    names = [name for name in df["Recurser"] if name not in SKIP_NAMES]
 
     # find the matching scrore for all possible pairs, using pattern matching
     scores = gen_pairing_scores(df, langs)
-    pprint(scores)
     
-    # pick a random set of matches
+    # pick a random set of matches, summarize it
     pairing, value, unmatched = gen_pairing(names, scores)
     print("Generated pairing:")
     pprint(pairing)
